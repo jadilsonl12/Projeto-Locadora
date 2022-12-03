@@ -288,7 +288,7 @@ def tela_inicio():
 
         elif(opcao2 == 5):
             
-            valor_a_pagar = banco_Cadastro.calcular_valor_a_pagar_do_usuario(usuario)
+            valor_a_pagar = banco_Cadastro.calcular_valor_a_pagar_do_usuario(banco_Cadastro.usuario_logado)
 
             print("R$", valor_a_pagar)
 
