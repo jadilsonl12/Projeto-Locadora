@@ -1,33 +1,143 @@
 import os
+import json
 
-banco_Cadastro = []
+class BancoCadastro:
+    def __init__(self) -> None:
+
+        self.dados = []
+
+        self.usuario_logado = None
+
+        self.filmes_alugados = {}
+
+        self.carregar_usuarios()
+
+    def add_usuario(self, nome, senha, email, login):
+        usuario = {}
+        usuario['nome'] = nome
+        usuario['senha'] = senha
+        usuario['email'] = email
+        usuario['login'] = login
+
+
+        lista = {i['email']: i for i in self.dados} #verifica repetições por meio das chaves
+        while usuario['email'] in lista: #caso já esteja em uso, solicita um nome email
+            usuario['email'] = input("E-mail já está sendo usado, digite outro E-mail: ")
+
+        lista = {i['login']: i for i in self.dados}
+        while usuario['login'] in lista:
+            usuario['login'] = input("Login já está sendo usado, digite outro: ")
+        
+        self.dados.append(usuario)
+
+        self.salvar_usuarios()
+
+    def validar_login_usuario(self, login, senha):
+
+        lista_login = {i['login']: i for i in self.dados} #verifica repetições por meio das chaves
+        lista_senha = {i['senha']: i for i in self.dados} #verifica repetições por meio das chaves
+
+        if login in lista_login and senha in lista_senha:
+            return True
+        
+        return False
+
+    def pegar_dados_usuario(self, login):
+         lista_login = {i['login']: i for i in self.dados}
+
+         if login in lista_login:
+            return lista_login
+    
+    def mostrar_dados_usuario(self):
+
+        print("# Usuários cadastrados #")
+
+        for i in self.dados:
+
+            print('Nome:', i['nome'], 'Login: ', i['login'] )
+
+    def exclusão_de_usuario(self, login, senha):
+
+        for i in range(len(self.dados)):
+            element = self.dados[i]
+            if element["login"] == login and element["senha"] == senha:
+                usuario_excluido = self.dados.pop(i)
+                return usuario_excluido
+
+        self.salvar_usuarios()
+
+    def salvar_usuarios(self):
+        with open("dados_usuarios", 'w') as f:
+            json.dump(self.dados, f)
+    
+    def carregar_usuarios(self):
+        
+        if(os.path.exists("dados_usuarios")):
+            with open("dados_usuarios", 'r') as f:
+                self.dados = json.load(f)
+    
+    def buscar_filme(self, busca):
+
+          for i in range(len(estoque_de_filmes)):
+                filme = estoque_de_filmes[i]
+                if filme == busca:
+                    return filme
+    
+    def alugar_filme(self, filme, usuario):
+
+        email_usuario = usuario['login']
+
+        filmes_existentes = self.filmes_alugados.get(email_usuario, [])
+
+        filmes_existentes.append(filme)
+
+        self.filmes_alugados[email_usuario] = filmes_existentes
+
+    def buscar_filme_do_usuario(self, usuario, filme):
+
+        filmes_existentes = self.filmes_alugados.get(usuario['login'], [])
+
+        if filme in filmes_existentes: #caso já esteja em uso, solicita um nome email
+            return filme
+
+    def calcular_valor_a_pagar_do_usuario(self, usuario):
+
+        filmes_existentes = self.filmes_alugados.get(usuario['login'], [])
+
+        quantidades_de_filmes = len(filmes_existentes)
+
+        valor_total_a_pagar = quantidades_de_filmes * 10
+
+        return valor_total_a_pagar
+    
+    def filmes_alugados_do_usuario(self, usuario):
+
+         filmes_existentes = self.filmes_alugados.get(usuario['login'], [])
+         return filmes_existentes
+
+
+banco_Cadastro = BancoCadastro()
 galeria_de_filmes = ['O poderoso chefão', 'O rei leão', 'O senhor dos anéis: o retorno do rei', 'À espera de um milagre', 'Vingadores: Ultimato', 'Batman - O cavaleiro das trevas', 'A vida é bela', 'O poderoso chefão 2', 'Vingadores: Guerra infinita', 'Viva -  A vida é uma festa', 'De volta para o futuro']
 filmes_lancados_recentemente = ['Sorria', 'Uncharted: Fora do mapa', 'Órfã 2: A origem', 'Jurassic World', 'Top gun: Maverick', 'The Batman', 'Homem Aranha: Sem volta pra casa', 'Thor Amor e Trovão', 'Velozes e Furiosos 9', 'Terrifeir']
 filmes_atualmente_reservados = []
 minha_lista_de_filmes = []
 estoque_de_filmes =  filmes_lancados_recentemente + galeria_de_filmes
+usuario = None
 
 def cadastro():
 
     while True:
         print("# Digite suas informações #")
         print("\n")
+    
 
-        dados = {}
-        dados['nome'] = str(input("Digite seu nome: "))
-        dados['senha'] = input("Digite uma senha (Obs: contendo apenas números): ")
-        dados['email'] = input("Digite seu email: ")
+        nome = str(input("Digite seu nome: "))
+        senha = input("Digite uma senha (Obs: contendo apenas números): ")
+        email = input("Digite seu email: ")
         
-        lista = {i['email']: i for i in banco_Cadastro} #verifica repetições por meio das chaves
-        while dados['email'] in lista: #caso já esteja em uso, solicita um nome email
-            dados['email'] = input("E-mail já está sendo usado, digite outro E-mail: ")
-
-        dados['login'] = input("Digite seu login: ")
-        lista = {i['login']: i for i in banco_Cadastro}
-        while dados['login'] in lista:
-            dados['login'] = input("Login já está sendo usado, digite outro: ")
-
-        banco_Cadastro.append(dados)
+        login = input("Digite seu login: ")
+        
+        banco_Cadastro.add_usuario(nome, senha, email, login)
 
         print("Cadastro realizado com sucesso!\n")
 
@@ -42,11 +152,11 @@ def login():
 
         login = input("Digite seu login: ")
         senha = input("Digite sua senha: ")
-    
-        lista = {i['login']: i for i in banco_Cadastro} #verifica repetições por meio das chaves
-        lista1 = {i['senha']: i for i in banco_Cadastro} #verifica repetições por meio das chaves
 
-        if login in lista and senha in lista1:
+        if banco_Cadastro.validar_login_usuario(login, senha): 
+            banco_Cadastro.usuario_logado = {
+                "login":login
+            }
             print("Login efetuado com sucesso!")
             
             tela_inicio()
@@ -63,12 +173,13 @@ def dadosUsuarios():
 
     while True:
         print("Digite o login que deseja buscar: ")
-        lista = {i['login']: i for i in banco_Cadastro}
 
-        pesquisa = input("Login: ")
+        login = input("Login: ")
 
-        if pesquisa in lista:
-            print(f"Dados dos usuário [{pesquisa}]: {lista[pesquisa]}")
+        dados_usuario = banco_Cadastro.pegar_dados_usuario(login)
+
+        if dados_usuario != None:
+            print(f"Dados dos usuário [{login}]: {dados_usuario}")
         else:
             print("Usuário não encontrado!")
 
@@ -81,11 +192,7 @@ def mostrarUsuario():
 
     while True:
 
-        print("# Usuários cadastrados #")
-
-        for i in banco_Cadastro:
-
-            print('Nome:', i['nome'], 'Login: ', i['login'] )
+        banco_Cadastro.mostrar_dados_usuario()
         
         opcao = input("Deseja consultar novamente? (s/n)")
         if(opcao == 'n'): 
@@ -98,12 +205,11 @@ def excluir_Usuario():
         login = input("Digite seu login: ")
         senha = input("Digite sua senha: ")
     
-        for i in range(len(banco_Cadastro)):
-            element = banco_Cadastro[i]
-            if element["login"] == login and element["senha"] == senha:
-                banco_Cadastro.pop(i)
-                print("Usuário excluído!")
-                break
+        usuario_excluido = banco_Cadastro.exclusão_de_usuario(login, senha)
+    
+        if(usuario_excluido != None):
+            print("Usuário excluído!")
+            break
         else:
             print("Usuário não encontrado!")
 
@@ -156,35 +262,35 @@ def tela_inicio():
                 print(i)
 
         elif(opcao2 == 3):
-            for i in minha_lista_de_filmes:
+            for i in banco_Cadastro.filmes_alugados_do_usuario(banco_Cadastro.usuario_logado):
                 print(i)
 
         elif(opcao2 == 4):
-            busca = input(print("Qual filme deseja buscar? "))
-            filme_encontrado = False
 
-            for i in range(len(estoque_de_filmes)):
-                filme = estoque_de_filmes[i]
-                if filme == busca:
-                    print("Filme encontrado!")
-                    filme_encontrado = True
-                    opcao3 = input("Deseja alugar? (s/n)")
-                    if(opcao3 == 's'):
-                        alugar(filme)
-                    if(opcao3 == 'n'):
-                        tela_inicio()
-                    break
+            busca = input(print("Qual filme deseja buscar? "))
+    
+            filme_encontrado = banco_Cadastro.buscar_filme(busca)
+
+            if(filme_encontrado != None):
+
+                print("Filme encontrado!")
+
+                opcao3 = input("Deseja alugar? (s/n)")
+                if(opcao3 == 's'):
+                    alugar(filme_encontrado)
+                if(opcao3 == 'n'):
+                    tela_inicio()
 
             if not filme_encontrado:
                 print("Filme não encontrado!")
                 tela_inicio()
                 break
+
         elif(opcao2 == 5):
-            quantidades_de_filmes = len(minha_lista_de_filmes)
+            
+            valor_a_pagar = banco_Cadastro.calcular_valor_a_pagar_do_usuario(usuario)
 
-            valor_total_a_pagar = quantidades_de_filmes * 10
-
-            print("R$", valor_total_a_pagar)
+            print("R$", valor_a_pagar)
 
         else:
 
@@ -202,12 +308,13 @@ def alugar(filme):
 
         filmes_alugados = {}
         filmes_alugados['filme'] = filme
+
+        filme_alugado = banco_Cadastro.buscar_filme_do_usuario(banco_Cadastro.usuario_logado, filme)
         
-        lista = [elem['filme'] for elem in minha_lista_de_filmes] #verifica repetições por meio das chaves
-        if filme in lista: #caso já esteja em uso, solicita um nome email
+        if (filme_alugado != None):
             print("O filme já foi alugado")
         else:
-            minha_lista_de_filmes.append(filmes_alugados)
+            banco_Cadastro.alugar_filme(filme, banco_Cadastro.usuario_logado)
             print("Filme alugado com sucesso!\n")
         
         tela_inicio()
