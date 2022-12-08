@@ -46,7 +46,7 @@ class BancoCadastro:
          lista_login = {i['login']: i for i in self.dados}
 
          if login in lista_login:
-            return lista_login
+            return lista_login[login]
     
     def mostrar_dados_usuario(self):
 
