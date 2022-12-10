@@ -317,7 +317,13 @@ def alugar(filme):
             banco_Cadastro.alugar_filme(filme, banco_Cadastro.usuario_logado)
             print("Filme alugado com sucesso!\n")
         
-        tela_inicio()
+        opcao = input("Deseja voltar para o início? (s/n)")
+        if(opcao == 's'): 
+            inicio()
+            break
+        if(opcao == 'n'):
+            tela_inicio()
+            break
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
